@@ -1,11 +1,7 @@
-# Solutions Engineering Template Repository
-A template repository that contains all required files (LICENSE, SUPPORT, CONTRIBUTING, etc) as outlined in the org standards.  
-
-
-The sections below are recommended in your project's README.md file. 
+# F5 BIG-IP Advanced WAF Protections for AWS API Gateway
 
 ## Overview
-Provide a short overview of the project.
+Terraform plan to deploy a POC of Advanced WAF protecting AWS API Gateway deployments
 
 ## Getting Started
 Provide a quick example of how to use your code.  This should provide the user with a launch point to quickly see what the project can offer them. 
