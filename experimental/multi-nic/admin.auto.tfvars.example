@@ -1,6 +1,8 @@
 resourceOwner        = "labteam"
 awsRegion            = "us-east-2"
+# For projectPrefix, shorter is better. Aim for 8 or less.
 projectPrefix        = "aws-gwlb"
-bigipLicenseAZ1      = "XXXXX-YYYYY-ZZZZZ-WWWWW-VVVVVVV"
-bigipLicenseAZ2      = "XXXXX-YYYYY-ZZZZZ-WWWWW-VVVVVVV"
+# specify license keys for BYOL; otherwise enter PAYG for Marketplace licensing
+bigipLicenseAZ1      = "PAYG"
+bigipLicenseAZ2      = "PAYG"
 bigipAdminPassword   = "f5labpassword!"
