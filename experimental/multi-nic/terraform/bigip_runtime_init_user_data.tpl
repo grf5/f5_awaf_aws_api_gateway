@@ -83,7 +83,13 @@ extension_packages:
         - extensionType: ts
           extensionVersion: 1.20.1
 extension_services:
-    service_operations: []
+    service_operations:
+    - extensionType: do
+      type: url
+      value: file://f5_declarative_onboarding.json
+    - extensionType: as3
+      type: url
+      value: file://f5_as3.json
 post_onboard_enabled: []
 EOF
 
