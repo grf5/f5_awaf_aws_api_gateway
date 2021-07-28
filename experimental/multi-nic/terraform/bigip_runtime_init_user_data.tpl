@@ -86,10 +86,10 @@ extension_services:
     service_operations:
     - extensionType: do
       type: url
-      value: file://f5_declarative_onboarding.json
+      value: https://raw.githubusercontent.com/grf5/f5_awaf_aws_api_gateway/main/experimental/multi-nic/terraform/f5_declarative_onboarding.json
     - extensionType: as3
       type: url
-      value: file://f5_as3.json
+      value: https://raw.githubusercontent.com/grf5/f5_awaf_aws_api_gateway/main/experimental/multi-nic/terraform/f5_as3.json
 post_onboard_enabled: []
 EOF
 
