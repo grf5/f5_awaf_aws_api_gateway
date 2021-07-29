@@ -25,13 +25,6 @@ export F5_BIGIP_RUNTIME_INIT_LOG_LEVEL=silly
 f5-bigip-runtime-init --config-file /config/cloud/runtime-init-conf.yaml --skip-telemetry
 EOF
 
-# create the declarative onboarding json file
-cat << "EOF" > /config/cloud/runtime-init-do.json
-{
-
-}
-EOF
-
 # runtime init configuration
 cat << "EOF" > /config/cloud/runtime-init-conf.yaml
 ---
@@ -74,35 +67,43 @@ runtime_parameters:
       field: subnet-ipv4-cidr-block
       index: 1
       ipcalc: mask
-pre_onboard_enabled:
-  - name: provision_rest
-    type: inline
-    commands:
-      - /usr/bin/setdb restjavad.useextramb true
-      - /usr/bin/setdb setup.run false
 extension_packages:
     install_operations:
         - extensionType: do
-          extensionVersion: 1.21.1
+          extensionVersion: ${f5_do_version}
         - extensionType: as3
-          extensionVersion: 3.29.0
+          extensionVersion: ${f5_as3_version}
         - extensionType: ts
-          extensionVersion: 1.20.1
+          extensionVersion: ${f5_ts_version}
 extension_services:
     service_operations:
     - extensionType: do
       type: inline
       value: 
-        schemaVersion: 1.0.0
+        schemaVersion: ${f5_do_version}
         class: Device
         async: true
         label: BIG-IP Onboarding
         Common:
           class: Tenant
+          systemConfig:
+            class: System
+            autoCheck: false
+            autoPhonehome: false
+            cliInactivityTimeout: 3600
+            consoleInactivityTimeout: 3600
+          sshdConfig:
+            class: SSHD
+            inactivityTimeout: 3600
           customDbVars:
             class: DbVariables
             provision.extramb: 500
             restjavad.useextramb: true
+            ui.system.preferences.recordsperscreen: 250
+            ui.system.preferences.advancedselection: advanced
+            ui.advisory.enabled: true
+            ui.advisory.color: green
+            ui.advisory.text: "Advanced WAF for AWS API Gateway"
           ntpConfiguration:
             class: NTP
             servers:
@@ -126,19 +127,49 @@ extension_services:
                 tagged: false
           data-self:
             class: SelfIp
-            address: {{{ DATAPLANE_IP }}}
+            address: "{{{ DATAPLANE_IP }}}"
             vlan: data-vlan
             allowService: none
             trafficGroup: traffic-group-local-only
           data-default-route:
             class: Route
-            gw: {{{ DATAPLANE_GATEWAY }}}
+            gw: "{{{ DATAPLANE_GATEWAY }}}"
             network: default
             mtu: 1500
-post_onboard_enabled: []
+    - extensionType: as3
+      type: inline
+      value: 
+        class: AS3
+        action: deploy
+        persist: true
+        declaration:
+          class: ADC
+          schemaVersion: ${f5_as3_version}
+          label: Adv WAF with AWS API Gateway AppSvcs
+          AdvWAF-AWS-APIGw:
+            class: Tenant
+            AdvWAF-APIGw-HTTPS:
+              class: Application
+              template: http
+              serviceMain:
+                class: service_HTTP
+                virtual-addresses: 
+                  - "{{{ DATAPLANE_IP }}}"
+                pool: api_pool
+              api_pool:
+                class: Pool
+                monitors: 
+                  - http
+                members:
+                  - servicePort: 80
+                    serverAddresses: 
+                      - "${pool_member_1}"
+                      - "${pool_member_2}"
 EOF
 
-# runcmd:
+# Add licensing if necessary
+if [ "${bigipLicenseType}" != "PAYG" ]; then
+  echo "bigip_ready_enabled:\n  - name: licensing\n    type: inline\n    commands:\n      - tmsh install sys license registration-key ${bigipLicense}\n" >> /config/cloud/runtime-init-conf.yaml
 
 # Download the f5-bigip-runtime-init package
 # 30 attempts, 5 second timeout and 10 second pause between attempts
@@ -146,12 +177,8 @@ for i in {1..30}; do
     curl -fv --retry 1 --connect-timeout 5 -L https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.2.1/dist/f5-bigip-runtime-init-1.2.1-1.gz.run -o /var/config/rest/downloads/f5-bigip-runtime-init-1.2.1-1.gz.run && break || sleep 10
 done
 
-# Add licensing if necessary
-echo ${bigipLicenseType}
-echo ${bigipLicense}
-
 # Execute the installer
 bash /var/config/rest/downloads/f5-bigip-runtime-init-1.2.1-1.gz.run -- "--cloud aws"
 
 # Runtime Init execution on configuration file created above
-f5-bigip-runtime-init --config-file /config/cloud/runtime-init-conf.yaml
+f5-bigip-runtime-init --config-file /config/cloud/runtime-init-conf.yaml  

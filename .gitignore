@@ -2,6 +2,7 @@
 *.pem
 **/*.pem
 .ssh
+**/*.ssh
 
 # logs
 *.log

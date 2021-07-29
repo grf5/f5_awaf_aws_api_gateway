@@ -132,21 +132,39 @@ resource "aws_default_security_group" "f5BigIPSG" {
   }
 }
 
-resource "aws_subnet" "f5BigIPSubnetAZ1" {
+resource "aws_subnet" "f5BigIPSubnetAZ1-MGMT" {
   vpc_id = aws_vpc.f5BigIPVPC.id
-  cidr_block = var.f5BigIPSubnetAZ1
+  cidr_block = var.f5BigIPSubnetAZ1-MGMT
   availability_zone = local.awsAz1
   tags = {
-    Name = "${var.projectPrefix}-f5BigIPSubnetAZ1-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPSubnetAZ1-MGMT-${random_id.buildSuffix.hex}"
   }
 }
 
-resource "aws_subnet" "f5BigIPSubnetAZ2" {
+resource "aws_subnet" "f5BigIPSubnetAZ1-DATA" {
   vpc_id = aws_vpc.f5BigIPVPC.id
-  cidr_block = var.f5BigIPSubnetAZ2
+  cidr_block = var.f5BigIPSubnetAZ1-DATA
+  availability_zone = local.awsAz1
+  tags = {
+    Name = "${var.projectPrefix}-f5BigIPSubnetAZ1-DATA-${random_id.buildSuffix.hex}"
+  }
+}
+
+resource "aws_subnet" "f5BigIPSubnetAZ2-MGMT" {
+  vpc_id = aws_vpc.f5BigIPVPC.id
+  cidr_block = var.f5BigIPSubnetAZ2-MGMT
   availability_zone = local.awsAz2
   tags = {
-    Name = "${var.projectPrefix}-f5BigIPSubnetAZ2-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPSubnetAZ2-MGMT-${random_id.buildSuffix.hex}"
+  }
+}
+
+resource "aws_subnet" "f5BigIPSubnetAZ2-DATA" {
+  vpc_id = aws_vpc.f5BigIPVPC.id
+  cidr_block = var.f5BigIPSubnetAZ2-DATA
+  availability_zone = local.awsAz2
+  tags = {
+    Name = "${var.projectPrefix}-f5BigIPSubnetAZ2-DATA-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -179,6 +197,14 @@ data "template_file" "bigip_runtime_init_AZ1" {
     bigipAdminPassword = "${var.bigipAdminPassword}"
     bigipLicenseType = "${var.bigipLicenseType}"
     bigipLicense = "${var.bigipLicenseAZ1}"
+    f5_do_version = "${var.f5_do_version}"
+    f5_do_schema_version = "${var.f5_do_schema_version}"
+    f5_as3_version = "${var.f5_as3_version}"
+    f5_as3_schema_version = "${var.f5_as3_schema_version}"
+    f5_ts_version = "${var.f5_ts_version}"
+    f5_ts_schema_version = "${var.f5_ts_schema_version}"
+    pool_member_1 = "${aws_network_interface.juiceShopAPIAZ1ENI.private_ip}"
+    pool_member_2 = "${aws_network_interface.juiceShopAPIAZ2ENI.private_ip}"    
   }
 }
 
@@ -188,6 +214,14 @@ data "template_file" "bigip_runtime_init_AZ2" {
     bigipAdminPassword = "${var.bigipAdminPassword}"
     bigipLicenseType = "${var.bigipLicenseType}"
     bigipLicense = "${var.bigipLicenseAZ2}"
+    f5_do_version = "${var.f5_do_version}"
+    f5_do_schema_version = "${var.f5_do_schema_version}"
+    f5_as3_version = "${var.f5_as3_version}"
+    f5_as3_schema_version = "${var.f5_as3_schema_version}"
+    f5_ts_version = "${var.f5_ts_version}"
+    f5_ts_schema_version = "${var.f5_ts_schema_version}"
+    pool_member_1 = "${aws_network_interface.juiceShopAPIAZ1ENI.private_ip}"
+    pool_member_2 = "${aws_network_interface.juiceShopAPIAZ2ENI.private_ip}"    
   }
 }
 
@@ -196,14 +230,14 @@ data "template_file" "bigip_runtime_init_AZ2" {
 ##
 
 resource "aws_network_interface" "F5_BIGIP_AZ1ENI_DATA" {
-  subnet_id = aws_subnet.f5BigIPSubnetAZ1.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ1-DATA.id
   tags = {
     Name = "F5_BIGIP_AZ1ENI_DATA"
   }
 }
 
 resource "aws_network_interface" "F5_BIGIP_AZ1ENI_MGMT" {
-  subnet_id = aws_subnet.f5BigIPSubnetAZ1.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ1-MGMT.id
   tags = {
     Name = "F5_BIGIP_AZ1ENI_MGMT"
   }
@@ -263,7 +297,7 @@ resource "aws_instance" "F5_BIGIP_AZ1" {
 ##
 
 resource "aws_network_interface" "F5_BIGIP_AZ2ENI_DATA" {
-  subnet_id = aws_subnet.f5BigIPSubnetAZ2.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ2-DATA.id
   source_dest_check = false
   tags = {
     Name = "F5_BIGIP_AZ2ENI_DATA"
@@ -271,7 +305,7 @@ resource "aws_network_interface" "F5_BIGIP_AZ2ENI_DATA" {
 }
 
 resource "aws_network_interface" "F5_BIGIP_AZ2ENI_MGMT" {
-  subnet_id = aws_subnet.f5BigIPSubnetAZ2.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ2-MGMT.id
   tags = {
     Name = "F5_BIGIP_AZ2ENI_MGMT"
   }
