@@ -115,19 +115,35 @@ resource "aws_default_security_group" "f5BigIPSG" {
   }
 
   ingress {
-    protocol = -1
-    from_port = 0
-    to_port = 0
+    protocol = "tcp"
+    from_port = 22
+    to_port = 22
     cidr_blocks = [format("%s/%s",data.http.ip_address.body,32)]
   }
-
   ingress {
-    protocol = -1
-    from_port = 0
-    to_port = 0
+    protocol = "tcp"
+    from_port = 80
+    to_port = 80
+    cidr_blocks = [format("%s/%s",data.http.ip_address.body,32)]
+  }
+  ingress {
+    protocol = "tcp"
+    from_port = 443
+    to_port = 443
+    cidr_blocks = [format("%s/%s",data.http.ip_address.body,32)]
+  }
+  ingress {
+    protocol = "tcp"
+    from_port = 80
+    to_port = 80
     cidr_blocks = [var.juiceShopAPICIDR,var.f5BigIPCIDR]
   }
-
+  ingress {
+    protocol = "tcp"
+    from_port = 443
+    to_port = 443
+    cidr_blocks = [var.juiceShopAPICIDR,var.f5BigIPCIDR]
+  }
   egress {
     from_port = 0
     to_port = 0
@@ -207,6 +223,7 @@ data "template_file" "bigip_runtime_init_AZ1" {
     f5_as3_schema_version = "${var.f5_as3_schema_version}"
     f5_ts_version = "${var.f5_ts_version}"
     f5_ts_schema_version = "${var.f5_ts_schema_version}"
+    service_address = "${aws_eip.F5_BIGIP_AZ1EIP_DATA.public_ip}"
     pool_member_1 = "${aws_network_interface.juiceShopAPIAZ1ENI.private_ip}"
     pool_member_2 = "${aws_network_interface.juiceShopAPIAZ2ENI.private_ip}"    
   }
@@ -224,6 +241,7 @@ data "template_file" "bigip_runtime_init_AZ2" {
     f5_as3_schema_version = "${var.f5_as3_schema_version}"
     f5_ts_version = "${var.f5_ts_version}"
     f5_ts_schema_version = "${var.f5_ts_schema_version}"
+    service_address = "${aws_eip.F5_BIGIP_AZ2EIP_DATA.public_ip}"    
     pool_member_1 = "${aws_network_interface.juiceShopAPIAZ1ENI.private_ip}"
     pool_member_2 = "${aws_network_interface.juiceShopAPIAZ2ENI.private_ip}"    
   }
@@ -391,16 +409,23 @@ resource "aws_default_security_group" "juiceShopAPISG" {
   }
 
   ingress {
-    protocol = -1
-    from_port = 0
-    to_port = 0
-    cidr_blocks = [var.juiceShopAPICIDR]
+    protocol = "tcp"
+    from_port = 80
+    to_port = 80
+    cidr_blocks = [aws_subnet.f5BigIPSubnetAZ1-DATA.cidr_block]
   }
 
   ingress {
-    protocol = -1
-    from_port = 0
-    to_port = 0
+    protocol = "tcp"
+    from_port = 22
+    to_port = 22
+    cidr_blocks = [format("%s/%s",data.http.ip_address.body,32)]
+  }
+
+ingress {
+    protocol = "tcp"
+    from_port = 80
+    to_port = 80
     cidr_blocks = [format("%s/%s",data.http.ip_address.body,32)]
   }
 

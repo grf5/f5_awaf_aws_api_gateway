@@ -125,7 +125,7 @@ variable "f5_as3_version" {
 variable "f5_as3_schema_version" {
   type = string
   description = "f5 application services version (see https://github.com/F5Networks/f5-appsvcs-extension/releases/latest)"
-  default = "3.26.1"
+  default = "3.26.0"
 }
 variable "f5_ts_version" {
   type = string

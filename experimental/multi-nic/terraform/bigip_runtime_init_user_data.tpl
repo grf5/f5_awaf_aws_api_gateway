@@ -152,9 +152,9 @@ extension_services:
             AdvWAF-APIGw-HTTPS:
               class: Application
               service:
-                class: service_HTTP
-                virtual-addresses: 
-                  - "{{{ DATAPLANE_IP }}}"
+                class: Service_HTTP
+                virtualAddresses: 
+                  - "${service_address}"
                 pool: api_pool
               api_pool:
                 class: Pool
