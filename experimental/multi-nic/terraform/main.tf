@@ -37,9 +37,6 @@ data "http" "ip_address" {
 # Get the current AWS caller identity
 data "aws_caller_identity" "current" {}
 
-# Set to PAYG if not specifically BYOL
-var.bigipLicenseType == "BYOL" ? "BYOL" : "PAYG"
-
 ##
 ## Locals
 ##
@@ -202,7 +199,7 @@ data "template_file" "bigip_runtime_init_AZ1" {
   template = "${file("${path.module}/bigip_runtime_init_user_data.tpl")}"
   vars = {
     bigipAdminPassword = "${var.bigipAdminPassword}"
-    bigipLicenseType = "${var.bigipLicenseType}"
+    bigipLicenseType = "${var.bigipLicenseType == "BYOL" ? "BYOL" : "PAYG"}"
     bigipLicense = "${var.bigipLicenseAZ1}"
     f5_do_version = "${var.f5_do_version}"
     f5_do_schema_version = "${var.f5_do_schema_version}"
@@ -219,7 +216,7 @@ data "template_file" "bigip_runtime_init_AZ2" {
   template = "${file("${path.module}/bigip_runtime_init_user_data.tpl")}"
   vars = {
     bigipAdminPassword = "${var.bigipAdminPassword}"
-    bigipLicenseType = "${var.bigipLicenseType}"
+    bigipLicenseType = "${var.bigipLicenseType == "BYOL" ? "BYOL" : "PAYG"}"
     bigipLicense = "${var.bigipLicenseAZ2}"
     f5_do_version = "${var.f5_do_version}"
     f5_do_schema_version = "${var.f5_do_schema_version}"

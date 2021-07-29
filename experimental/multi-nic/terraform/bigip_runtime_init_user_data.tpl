@@ -80,7 +80,7 @@ extension_services:
     - extensionType: do
       type: inline
       value: 
-        schemaVersion: ${f5_do_version}
+        schemaVersion: ${f5_do_schema_version}
         class: Device
         async: true
         label: BIG-IP Onboarding
@@ -144,14 +144,14 @@ extension_services:
         persist: true
         declaration:
           class: ADC
-          schemaVersion: ${f5_as3_version}
-          label: Adv WAF with AWS API Gateway AppSvcs
+          schemaVersion: ${f5_as3_schema_version}
+          label: "Adv WAF with AWS API Gateway AppSvcs"
+          remark: "Tested with 16.1"
           AdvWAF-AWS-APIGw:
             class: Tenant
             AdvWAF-APIGw-HTTPS:
               class: Application
-              template: http
-              serviceMain:
+              service:
                 class: service_HTTP
                 virtual-addresses: 
                   - "{{{ DATAPLANE_IP }}}"
