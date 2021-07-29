@@ -12,7 +12,7 @@ data "aws_availability_zones" "available" {
 
 resource "tls_private_key" "newkey" {
   algorithm = "RSA"
-  rsa_bits  = 4096
+  rsa_bits = 4096
 }
 
 resource "local_file" "newkey_pem" { 
@@ -22,12 +22,12 @@ resource "local_file" "newkey_pem" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "${var.projectPrefix}-key-${random_id.buildSuffix.hex}"
+  key_name = "${var.projectPrefix}-key-${random_id.buildSuffix.hex}"
   public_key = tls_private_key.newkey.public_key_openssh
 }
 
 data "http" "ip_address" {
-  url             = var.get_address_url
+  url = var.get_address_url
   request_headers = var.get_address_request_headers
 }
 
@@ -50,12 +50,12 @@ data "aws_ami" "ubuntu" {
   most_recent = true
 
   filter {
-    name   = "name"
+    name = "name"
     values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
 
   filter {
-    name   = "virtualization-type"
+    name = "virtualization-type"
     values = ["hvm"]
   }
 
@@ -75,7 +75,7 @@ data "aws_ami" "f5BigIP_AMI" {
     values = ["F5 BIGIP-${var.bigip_version}*"]
   }
   filter {
-    name   = "virtualization-type"
+    name = "virtualization-type"
     values = ["hvm"]
   }
 
@@ -93,21 +93,21 @@ data "aws_ami" "f5BigIP_AMI" {
 resource "aws_vpc" "f5BigIPVPC" {
   cidr_block = var.f5BigIPCIDR
   tags = {
-    Name  = "${var.projectPrefix}-f5BigIPVPC-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPVPC-${random_id.buildSuffix.hex}"
   }
 }
 
 resource "aws_default_security_group" "f5BigIPSG" {
   vpc_id = aws_vpc.f5BigIPVPC.id
   tags = {
-    Name  = "${var.projectPrefix}-f5BigIPSG-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPSG-${random_id.buildSuffix.hex}"
   }
 
   ingress {
-    protocol  = -1
-    self      = true
+    protocol = -1
+    self = true
     from_port = 0
-    to_port   = 0
+    to_port = 0
   }
 
   ingress {
@@ -125,9 +125,9 @@ resource "aws_default_security_group" "f5BigIPSG" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -137,7 +137,7 @@ resource "aws_subnet" "f5BigIPSubnetAZ1" {
   cidr_block = var.f5BigIPSubnetAZ1
   availability_zone = local.awsAz1
   tags = {
-    Name  = "${var.projectPrefix}-f5BigIPSubnetAZ1-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPSubnetAZ1-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -146,14 +146,14 @@ resource "aws_subnet" "f5BigIPSubnetAZ2" {
   cidr_block = var.f5BigIPSubnetAZ2
   availability_zone = local.awsAz2
   tags = {
-    Name  = "${var.projectPrefix}-f5BigIPSubnetAZ2-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPSubnetAZ2-${random_id.buildSuffix.hex}"
   }
 }
 
 resource "aws_internet_gateway" "f5BigIPIGW" {
   vpc_id = aws_vpc.f5BigIPVPC.id
   tags = {
-    Name  = "${var.projectPrefix}-f5BigIPIGW-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPIGW-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -165,7 +165,7 @@ resource "aws_default_route_table" "f5BigIPMainRT" {
     gateway_id = aws_internet_gateway.f5BigIPIGW.id
   }
   tags = {
-    Name  = "${var.projectPrefix}-f5BigIPMainRT-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-f5BigIPMainRT-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -177,6 +177,8 @@ data "template_file" "bigip_runtime_init_AZ1" {
   template = "${file("${path.module}/bigip_runtime_init_user_data.tpl")}"
   vars = {
     bigipAdminPassword = "${var.bigipAdminPassword}"
+    bigipLicenseType = "${var.bigipLicenseType}"
+    bigipLicense = "${var.bigipLicenseAZ1}"
   }
 }
 
@@ -184,6 +186,8 @@ data "template_file" "bigip_runtime_init_AZ2" {
   template = "${file("${path.module}/bigip_runtime_init_user_data.tpl")}"
   vars = {
     bigipAdminPassword = "${var.bigipAdminPassword}"
+    bigipLicenseType = "${var.bigipLicenseType}"
+    bigipLicense = "${var.bigipLicenseAZ2}"
   }
 }
 
@@ -192,15 +196,14 @@ data "template_file" "bigip_runtime_init_AZ2" {
 ##
 
 resource "aws_network_interface" "F5_BIGIP_AZ1ENI_DATA" {
-  subnet_id       = aws_subnet.f5BigIPSubnetAZ1.id
-  source_dest_check = false
+  subnet_id = aws_subnet.f5BigIPSubnetAZ1.id
   tags = {
     Name = "F5_BIGIP_AZ1ENI_DATA"
   }
 }
 
 resource "aws_network_interface" "F5_BIGIP_AZ1ENI_MGMT" {
-  subnet_id       = aws_subnet.f5BigIPSubnetAZ1.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ1.id
   tags = {
     Name = "F5_BIGIP_AZ1ENI_MGMT"
   }
@@ -233,10 +236,10 @@ resource "aws_eip" "F5_BIGIP_AZ1EIP_DATA" {
 }
 
 resource "aws_instance" "F5_BIGIP_AZ1" {
-  ami               = data.aws_ami.f5BigIP_AMI.id
-  instance_type     = "c5.4xlarge"
+  ami = data.aws_ami.f5BigIP_AMI.id
+  instance_type = "c5.4xlarge"
   availability_zone = local.awsAz1
-  key_name          = aws_key_pair.deployer.id
+  key_name = aws_key_pair.deployer.id
 	user_data = "${data.template_file.bigip_runtime_init_AZ1.rendered}"
   network_interface {
     network_interface_id = aws_network_interface.F5_BIGIP_AZ1ENI_MGMT.id
@@ -260,7 +263,7 @@ resource "aws_instance" "F5_BIGIP_AZ1" {
 ##
 
 resource "aws_network_interface" "F5_BIGIP_AZ2ENI_DATA" {
-  subnet_id       = aws_subnet.f5BigIPSubnetAZ2.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ2.id
   source_dest_check = false
   tags = {
     Name = "F5_BIGIP_AZ2ENI_DATA"
@@ -268,7 +271,7 @@ resource "aws_network_interface" "F5_BIGIP_AZ2ENI_DATA" {
 }
 
 resource "aws_network_interface" "F5_BIGIP_AZ2ENI_MGMT" {
-  subnet_id       = aws_subnet.f5BigIPSubnetAZ2.id
+  subnet_id = aws_subnet.f5BigIPSubnetAZ2.id
   tags = {
     Name = "F5_BIGIP_AZ2ENI_MGMT"
   }
@@ -300,10 +303,10 @@ resource "aws_eip" "F5_BIGIP_AZ2EIP_DATA" {
   }
 }
 resource "aws_instance" "F5_BIGIP_AZ2" {
-  ami               = data.aws_ami.f5BigIP_AMI.id
-  instance_type     = "c5.4xlarge"
+  ami = data.aws_ami.f5BigIP_AMI.id
+  instance_type = "c5.4xlarge"
   availability_zone = local.awsAz2
-  key_name          = aws_key_pair.deployer.id
+  key_name = aws_key_pair.deployer.id
 	user_data = "${data.template_file.bigip_runtime_init_AZ2.rendered}"
   network_interface {
     network_interface_id = aws_network_interface.F5_BIGIP_AZ2ENI_MGMT.id
@@ -333,20 +336,20 @@ resource "aws_instance" "F5_BIGIP_AZ2" {
 resource "aws_vpc" "juiceShopAPIVPC" {
   cidr_block = var.juiceShopAPICIDR
   tags = {
-    Name  = "${var.projectPrefix}-juiceShopAPIVPC-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-juiceShopAPIVPC-${random_id.buildSuffix.hex}"
   }
 }
 
 resource "aws_default_security_group" "juiceShopAPISG" {
   vpc_id = aws_vpc.juiceShopAPIVPC.id
   tags = {
-    Name  = "${var.projectPrefix}-juiceShopAPISG-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-juiceShopAPISG-${random_id.buildSuffix.hex}"
   }
   ingress {
-    protocol  = -1
-    self      = true
+    protocol = -1
+    self = true
     from_port = 0
-    to_port   = 0
+    to_port = 0
   }
 
   ingress {
@@ -364,9 +367,9 @@ resource "aws_default_security_group" "juiceShopAPISG" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -376,7 +379,7 @@ resource "aws_subnet" "juiceShopAPISubnetAZ1" {
   cidr_block = var.juiceShopAPISubnetAZ1
   availability_zone = local.awsAz1
   tags = {
-    Name  = "${var.projectPrefix}-juiceShopAPISubnetAZ1-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-juiceShopAPISubnetAZ1-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -385,14 +388,14 @@ resource "aws_subnet" "juiceShopAPISubnetAZ2" {
   cidr_block = var.juiceShopAPISubnetAZ2
   availability_zone = local.awsAz2
   tags = {
-    Name  = "${var.projectPrefix}-juiceShopAPISubnetAZ2-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-juiceShopAPISubnetAZ2-${random_id.buildSuffix.hex}"
   }
 }
 
 resource "aws_internet_gateway" "juiceShopAPIIGW" {
   vpc_id = aws_vpc.juiceShopAPIVPC.id
   tags = {
-    Name  = "${var.projectPrefix}-juiceShopAPIIGW-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-juiceShopAPIIGW-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -404,7 +407,7 @@ resource "aws_default_route_table" "juiceShopAPIMainRT" {
     gateway_id = aws_internet_gateway.juiceShopAPIIGW.id
   }
   tags = {
-    Name  = "${var.projectPrefix}-juiceShopAPIMainRT-${random_id.buildSuffix.hex}"
+    Name = "${var.projectPrefix}-juiceShopAPIMainRT-${random_id.buildSuffix.hex}"
   }
 }
 
@@ -413,7 +416,7 @@ resource "aws_default_route_table" "juiceShopAPIMainRT" {
 ##
 
 resource "aws_network_interface" "juiceShopAPIAZ1ENI" {
-  subnet_id       = aws_subnet.juiceShopAPISubnetAZ1.id
+  subnet_id = aws_subnet.juiceShopAPISubnetAZ1.id
   tags = {
     Name = "juiceShopAPIAZ1ENI"
   }
@@ -433,10 +436,10 @@ resource "aws_eip" "juiceShopAPIAZ1EIP" {
 }
 
 resource "aws_instance" "juiceShopAPIAZ1" {
-  ami               = data.aws_ami.ubuntu.id
-  instance_type     = "m5.xlarge"
+  ami = data.aws_ami.ubuntu.id
+  instance_type = "m5.xlarge"
   availability_zone = local.awsAz1
-  key_name          = aws_key_pair.deployer.id
+  key_name = aws_key_pair.deployer.id
 	user_data = <<-EOF
               #!/bin/bash
               sudo apt update
@@ -470,7 +473,7 @@ resource "aws_instance" "juiceShopAPIAZ1" {
 ##
 
 resource "aws_network_interface" "juiceShopAPIAZ2ENI" {
-  subnet_id       = aws_subnet.juiceShopAPISubnetAZ2.id
+  subnet_id = aws_subnet.juiceShopAPISubnetAZ2.id
   tags = {
     Name = "juiceShopAPIAZ2ENI"
   }
@@ -490,10 +493,10 @@ resource "aws_eip" "juiceShopAPIAZ2EIP" {
 }
 
 resource "aws_instance" "juiceShopAPIAZ2" {
-  ami               = data.aws_ami.ubuntu.id
-  instance_type     = "m5.xlarge"
+  ami = data.aws_ami.ubuntu.id
+  instance_type = "m5.xlarge"
   availability_zone = local.awsAz2
-  key_name          = aws_key_pair.deployer.id
+  key_name = aws_key_pair.deployer.id
 	user_data = <<-EOF
               #!/bin/bash
               sudo apt update
