@@ -15,23 +15,30 @@ resource "tls_private_key" "newkey" {
   rsa_bits = 4096
 }
 
+# create a new local ssh identity
 resource "local_file" "newkey_pem" { 
   filename = "${abspath(path.root)}/.ssh/${var.projectPrefix}-key-${random_id.buildSuffix.hex}.pem"
   sensitive_content = tls_private_key.newkey.private_key_pem
   file_permission = "0400"
 }
 
+# create a new AWS ssh identity
 resource "aws_key_pair" "deployer" {
   key_name = "${var.projectPrefix}-key-${random_id.buildSuffix.hex}"
   public_key = tls_private_key.newkey.public_key_openssh
 }
 
+# retrieve the local public IP address
 data "http" "ip_address" {
   url = var.get_address_url
   request_headers = var.get_address_request_headers
 }
 
+# Get the current AWS caller identity
 data "aws_caller_identity" "current" {}
+
+# Set to PAYG if not specifically BYOL
+var.bigipLicenseType == "BYOL" ? "BYOL" : "PAYG"
 
 ##
 ## Locals

@@ -170,6 +170,7 @@ EOF
 # Add licensing if necessary
 if [ "${bigipLicenseType}" != "PAYG" ]; then
   echo "bigip_ready_enabled:\n  - name: licensing\n    type: inline\n    commands:\n      - tmsh install sys license registration-key ${bigipLicense}\n" >> /config/cloud/runtime-init-conf.yaml
+fi
 
 # Download the f5-bigip-runtime-init package
 # 30 attempts, 5 second timeout and 10 second pause between attempts
