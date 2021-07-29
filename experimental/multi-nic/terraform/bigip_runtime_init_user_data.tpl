@@ -85,11 +85,42 @@ extension_packages:
 extension_services:
     service_operations:
     - extensionType: do
-      type: url
-      value: https://raw.githubusercontent.com/grf5/f5_awaf_aws_api_gateway/main/experimental/multi-nic/terraform/f5_declarative_onboarding.json
-    - extensionType: as3
-      type: url
-      value: https://raw.githubusercontent.com/grf5/f5_awaf_aws_api_gateway/main/experimental/multi-nic/terraform/f5_as3.json
+      type: inline
+      value: 
+        schemaVersion: 1.0.0
+        class: Device
+        async: true
+        label: BIG-IP Onboarding
+        Common:
+          class: Tenant
+          ntpConfiguration:
+            class: NTP
+            servers:
+              - 0.pool.ntp.org
+              - 1.pool.ntp.org
+              - 2.pool.ntp.org
+            timezone: EST
+          Provisioning:
+            class: Provision
+            ltm: nominal
+            asm: nominal
+          admin:
+            class: User
+            userType: regular
+            password: ${bigipAdminPassword}
+            shell: bash
+          data-vlan:
+            class: VLAN
+            interfaces:
+              - name: '1.1'
+                tagged: false
+          data-self:
+            class: SelfIp
+            address: "{{{ DATAPLANE_IP }}}"
+            vlan: data-vlan
+            allowService: none
+            trafficGroup: traffic-group-local-only
+          
 post_onboard_enabled: []
 EOF
 

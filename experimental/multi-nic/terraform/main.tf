@@ -16,7 +16,7 @@ resource "tls_private_key" "newkey" {
 }
 
 resource "local_file" "newkey_pem" { 
-  filename = "${path.module}/.ssh/${var.projectPrefix}-key-${random_id.buildSuffix.hex}.pem"
+  filename = "${abspath(path.root)}/.ssh/${var.projectPrefix}-key-${random_id.buildSuffix.hex}.pem"
   sensitive_content = tls_private_key.newkey.private_key_pem
   file_permission = "0400"
 }
@@ -60,6 +60,26 @@ data "aws_ami" "ubuntu" {
   }
 
   owners = ["099720109477"] # Canonical
+}
+
+##
+## BIG-IP AMI - F5
+##
+
+data "aws_ami" "f5BigIP_AMI" {
+  most_recent = true
+  name_regex = ".*${lookup(var.bigip_ami_mapping, var.bigipLicenseType)}.*"
+
+  filter {
+    name = "name"
+    values = ["F5 BIGIP-${var.bigip_version}*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["679593333241"]
 }
 
 #######################################
@@ -213,17 +233,17 @@ resource "aws_eip" "F5_BIGIP_AZ1EIP_DATA" {
 }
 
 resource "aws_instance" "F5_BIGIP_AZ1" {
-  ami               = data.aws_ami.f5BigIP_GWLB_AMI.id
-  instance_type     = "c5.xlarge"
+  ami               = data.aws_ami.f5BigIP_AMI.id
+  instance_type     = "c5.4xlarge"
   availability_zone = local.awsAz1
   key_name          = aws_key_pair.deployer.id
 	user_data = "${data.template_file.bigip_runtime_init_AZ1.rendered}"
   network_interface {
-    network_interface_id = aws_network_interface.F5_BIGIP_AZ1ENI_DATA.id
+    network_interface_id = aws_network_interface.F5_BIGIP_AZ1ENI_MGMT.id
     device_index = 0
   }
   network_interface {
-    network_interface_id = aws_network_interface.F5_BIGIP_AZ1ENI_MGMT.id
+    network_interface_id = aws_network_interface.F5_BIGIP_AZ1ENI_DATA.id
     device_index = 1
   }
   # Let's ensure an EIP is provisioned so licensing and bigip-runtime-init runs successfully
@@ -280,17 +300,17 @@ resource "aws_eip" "F5_BIGIP_AZ2EIP_DATA" {
   }
 }
 resource "aws_instance" "F5_BIGIP_AZ2" {
-  ami               = data.aws_ami.f5BigIP_GWLB_AMI.id
-  instance_type     = "c5.xlarge"
+  ami               = data.aws_ami.f5BigIP_AMI.id
+  instance_type     = "c5.4xlarge"
   availability_zone = local.awsAz2
   key_name          = aws_key_pair.deployer.id
 	user_data = "${data.template_file.bigip_runtime_init_AZ2.rendered}"
   network_interface {
-    network_interface_id = aws_network_interface.F5_BIGIP_AZ2ENI_DATA.id
+    network_interface_id = aws_network_interface.F5_BIGIP_AZ2ENI_MGMT.id
     device_index = 0
   }
   network_interface {
-    network_interface_id = aws_network_interface.F5_BIGIP_AZ2ENI_MGMT.id
+    network_interface_id = aws_network_interface.F5_BIGIP_AZ2ENI_DATA.id
     device_index = 1
   }
   # Let's ensure an EIP is provisioned so licensing and bigip-runtime-init runs successfully

@@ -7,7 +7,7 @@ variable "projectPrefix" {
 }
 variable "resourceOwner" {
   description = "Owner of the deployment for tagging purposes"
-  default     = "grobinson"
+  default     = "bigip-team"
 }
 variable "awsRegion" {
   description = "aws region"
@@ -79,4 +79,21 @@ variable get_address_request_headers {
     Accept = "text/plain"
   }
   description = "HTTP headers to send"
+}
+variable "bigipLicenseType" {
+  type = string
+  description = "license type BYOL or PAYG"
+  default = "PAYG"
+}
+variable "bigip_ami_mapping" {
+  description = "mapping AMIs for PAYG and BYOL"
+  default = {
+    "BYOL" = "BYOL-All Modules 2Boot Loc"
+    "PAYG" = "PAYG-Best 10Gbps"
+  }
+}
+variable "bigip_version" {
+  type = string
+  description = "the base TMOS version to use - most recent version will be used"
+  default =  "16.1"
 }
