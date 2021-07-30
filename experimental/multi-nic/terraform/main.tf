@@ -4,6 +4,9 @@
 
 provider "aws" {
   region = var.awsRegion
+  default_tags {
+    Owner = "${var.resourceOwner}"
+  }
 }
 
 data "aws_availability_zones" "available" {
@@ -415,6 +418,13 @@ resource "aws_default_security_group" "juiceShopAPISG" {
     cidr_blocks = [aws_subnet.f5BigIPSubnetAZ1-DATA.cidr_block]
   }
 
+ingress {
+    protocol = "tcp"
+    from_port = 80
+    to_port = 80
+    cidr_blocks = [aws_subnet.f5BigIPSubnetAZ2-DATA.cidr_block]
+  }
+
   ingress {
     protocol = "tcp"
     from_port = 22
@@ -640,4 +650,18 @@ resource "aws_lb_target_group_attachment" "juiceShopAPIAZ1TGAttachment" {
 resource "aws_lb_target_group_attachment" "juiceShopAPIAZ2TGAttachment" {
   target_group_arn = aws_lb_target_group.juiceShopAPITG.arn
   target_id = aws_instance.juiceShopAPIAZ2.id
+}
+
+##
+## AWS API Gateway
+##
+
+resource "aws_api_gateway_vpc_link" "f5toJuiceShopVPCLink" {
+  name = "${var.projectPrefix}-vpclink-${random_id.buildSuffix.hex}"
+  description = "stitches together the F5 and Juice Shop VPCs"
+  target_arns = [aws_lb.juiceShopAPINLB.arn]
+  tags = {
+    Name = "${var.projectPrefix}-juiceShopAPITG-${random_id.buildSuffix.hex}"
+  }  
+
 }
