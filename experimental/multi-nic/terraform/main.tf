@@ -5,7 +5,9 @@
 provider "aws" {
   region = var.awsRegion
   default_tags {
-    Owner = "${var.resourceOwner}"
+    tags = {
+      Owner = "${var.resourceOwner}"
+    }
   }
 }
 
@@ -656,12 +658,53 @@ resource "aws_lb_target_group_attachment" "juiceShopAPIAZ2TGAttachment" {
 ## AWS API Gateway
 ##
 
+resource "aws_api_gateway_rest_api" "f5-awaf-aws-api-gateway" {
+  name = "${var.projectPrefix}-apigw-${random_id.buildSuffix.hex}"
+}
+
+resource "aws_api_gateway_resource" "f5-awaf-aws-api-gateway-resource" {
+  parent_id = aws_api_gateway_rest_api.f5-awaf-aws-api-gateway.root_resource_id
+  path_part = "gateway-resource"
+  rest_api_id = aws_api_gateway_rest_api.f5-awaf-aws-api-gateway.id
+}
+
+resource "aws_api_gateway_method" "f5-awaf-aws-api-gateway-method" {
+  authorization = "NONE"
+  http_method = "ANY"
+  resource_id = aws_api_gateway_resource.f5-awaf-aws-api-gateway-resource.id
+  rest_api_id = aws_api_gateway_rest_api.f5-awaf-aws-api-gateway.id
+}
+
+resource "aws_api_gateway_integration" "f5-awaf-aws-api-gateway-integration" {
+  http_method = aws_api_gateway_method.f5-awaf-aws-api-gateway-method.http_method
+  resource_id = aws_api_gateway_resource.f5-awaf-aws-api-gateway-resource.id
+  rest_api_id = aws_api_gateway_rest_api.f5-awaf-aws-api-gateway.id
+  type = "MOCK"
+}
+
+resource "aws_api_gateway_deployment" "f5-awaf-aws-api-gateway-deployment" {
+  rest_api_id = aws_api_gateway_rest_api.f5-awaf-aws-api-gateway.id
+  triggers = {
+    "redeployment " = sha1(jsonencode([
+      aws_api_gateway_resource.f5-awaf-aws-api-gateway-resource.id,
+      aws_api_gateway_method.f5-awaf-aws-api-gateway-method.id,
+      aws_api_gateway_integration.f5-awaf-aws-api-gateway-integration.id,
+    ]))
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "f5-awaf-aws-api-gateway-deployment" {
+  deployment_id = aws_api_gateway_deployment.f5-awaf-aws-api-gateway-deployment.id
+  rest_api_id = aws_api_gateway_rest_api.f5-awaf-aws-api-gateway.id
+  stage_name = "apigw"
+}
+
 resource "aws_api_gateway_vpc_link" "f5toJuiceShopVPCLink" {
   name = "${var.projectPrefix}-vpclink-${random_id.buildSuffix.hex}"
   description = "stitches together the F5 and Juice Shop VPCs"
   target_arns = [aws_lb.juiceShopAPINLB.arn]
-  tags = {
-    Name = "${var.projectPrefix}-juiceShopAPITG-${random_id.buildSuffix.hex}"
-  }  
-
 }
+
