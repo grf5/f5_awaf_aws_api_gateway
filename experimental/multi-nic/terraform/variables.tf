@@ -102,6 +102,10 @@ variable "bigip_ami_mapping" {
     "PAYG" = "PAYG-Best 10Gbps"
   }
 }
+variable "bigip_ec2_instance_type" {
+  description = "instance type for the BIG-IP instances"
+  default = "c5.4xlarge"
+}
 variable "bigip_version" {
   type = string
   description = "the base TMOS version to use - most recent version will be used"

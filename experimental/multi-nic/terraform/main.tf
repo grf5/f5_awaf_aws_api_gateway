@@ -298,7 +298,7 @@ resource "aws_eip" "F5_BIGIP_AZ1EIP_DATA" {
 
 resource "aws_instance" "F5_BIGIP_AZ1" {
   ami = data.aws_ami.f5BigIP_AMI.id
-  instance_type = "c5.4xlarge"
+  instance_type = "${var.bigip_ec2_instance_type}"
   availability_zone = local.awsAz1
   key_name = aws_key_pair.deployer.id
 	user_data = "${data.template_file.bigip_runtime_init_AZ1.rendered}"
@@ -365,7 +365,7 @@ resource "aws_eip" "F5_BIGIP_AZ2EIP_DATA" {
 }
 resource "aws_instance" "F5_BIGIP_AZ2" {
   ami = data.aws_ami.f5BigIP_AMI.id
-  instance_type = "c5.4xlarge"
+  instance_type = "${var.bigip_ec2_instance_type}"
   availability_zone = local.awsAz2
   key_name = aws_key_pair.deployer.id
 	user_data = "${data.template_file.bigip_runtime_init_AZ2.rendered}"
@@ -708,3 +708,7 @@ resource "aws_api_gateway_vpc_link" "f5toJuiceShopVPCLink" {
   target_arns = [aws_lb.juiceShopAPINLB.arn]
 }
 
+resource "http_as3_application" "sap_app" {
+  as3_app_label = ${var.app_label}
+  as3_declaration = ${file("http_as3_template.json").rendered}
+}
