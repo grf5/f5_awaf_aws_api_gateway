@@ -48,6 +48,10 @@ variable "juiceShopAPISubnetAZ1" {
   default = "10.20.100.0/24"
   type = string
 }
+variable "juiceShopEC2InstanceType" {
+  description = "EC2 instance type for Juice Shop servers"
+  default = "m5.xlarge"
+}
 variable "juiceShopAPISubnetAZ2" {
   description = "Subnet for Juice Shop API AZ2"
   default = "10.20.200.0/24"

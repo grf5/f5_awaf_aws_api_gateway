@@ -512,7 +512,7 @@ resource "aws_eip" "juiceShopAPIAZ1EIP" {
 
 resource "aws_instance" "juiceShopAPIAZ1" {
   ami = data.aws_ami.ubuntu.id
-  instance_type = "m5.xlarge"
+  instance_type = "${var.juiceShopEC2InstanceType}"
   availability_zone = local.awsAz1
   key_name = aws_key_pair.deployer.id
 	user_data = <<-EOF
@@ -569,7 +569,7 @@ resource "aws_eip" "juiceShopAPIAZ2EIP" {
 
 resource "aws_instance" "juiceShopAPIAZ2" {
   ami = data.aws_ami.ubuntu.id
-  instance_type = "m5.xlarge"
+  instance_type = "${var.juiceShopEC2InstanceType}"
   availability_zone = local.awsAz2
   key_name = aws_key_pair.deployer.id
 	user_data = <<-EOF
