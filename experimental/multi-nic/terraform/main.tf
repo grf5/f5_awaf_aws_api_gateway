@@ -709,6 +709,6 @@ resource "aws_api_gateway_vpc_link" "f5toJuiceShopVPCLink" {
 }
 
 resource "http_as3_application" "sap_app" {
-  as3_app_label = ${var.app_label}
-  as3_declaration = ${file("http_as3_template.json").rendered}
+  as3_app_label = "${var.app_label}"
+  as3_declaration = "${file("http_as3_template.json").rendered}"
 }
